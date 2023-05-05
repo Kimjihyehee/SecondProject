@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Issues Graph</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+<div id="chart-container"></div>
+<div th:each="status, issues : ${issuesByStatus}">
+    <h3 th:text="${status}"></h3>
+    <ul>
+        <li th:each="issue : ${issues}" th:text="${issue}"></li>
+    </ul>
+</div>
+<!--타임리프를 이용해서 선언한 객체를 외부에 js에서 인식할 수 있도록 즉, 외부 제이에스에서 서버에서 보낸 데이터를 받아올 수 있도록 내부 자바스크립트로 처리-->
+<script th:inline="javascript">
+    var dates = /*[[${dates}]]*/[];
+    var statuses = /*[[${statuses}]]*/[];
+    // JS 코드 작성
+</script>
+<script th:inline="javascript" src="/js/issues-chart.js"></script>
+
+<!--<script th:inline="javascript">-->
+<!--    // 추출한 데이터-->
+<!--    var dates = /*[[${dates}]]*/[];-->
+<!--    var statuses = /*[[${statuses}]]*/[];-->
+
+<!--    // Highcharts 그래프 생성-->
+<!--    Highcharts.chart('chart-container', {-->
+<!--        title: {-->
+<!--            text: 'GitHub Issues Graph'-->
+<!--        },-->
+<!--        xAxis: {-->
+<!--            categories: dates-->
+<!--        },-->
+<!--        yAxis: {-->
+<!--            title: {-->
+<!--                text: 'Status'-->
+<!--            },-->
+<!--            categories: statuses-->
+<!--        },-->
+<!--        series: [{-->
+<!--            name: 'Issues',-->
+<!--            data: statuses-->
+<!--        }]-->
+<!--    });-->
+<!--</script>-->
+</body>
+</html>

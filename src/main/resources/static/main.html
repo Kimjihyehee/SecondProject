@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Issues Graph</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+<div id="chart-container"></div>
+<script th:inline="javascript" src="/js/issues-chart.js"></script>
+
+<!--<script th:inline="javascript">-->
+<!--    // 추출한 데이터-->
+<!--    var dates = /*[[${dates}]]*/[];-->
+<!--    var statuses = /*[[${statuses}]]*/[];-->
+
+<!--    console.log("dates : "+ dates);-->
+<!--    console.log("statuses : "+ statuses);-->
+<!--    alert("하하하하하");-->
+<!--    // Highcharts 그래프 생성-->
+<!--    Highcharts.chart('chart-container', {-->
+<!--        title: {-->
+<!--            text: 'GitHub Issues Graph'-->
+<!--        },-->
+<!--        xAxis: {-->
+<!--            categories: dates-->
+<!--        },-->
+<!--        yAxis: {-->
+<!--            title: {-->
+<!--                text: 'Status'-->
+<!--            },-->
+<!--            categories: statuses-->
+<!--        },-->
+<!--        series: [{-->
+<!--            name: 'Issues',-->
+<!--            data: statuses-->
+<!--        }]-->
+<!--    });-->
+<!--</script>-->
+</body>
+</html>
