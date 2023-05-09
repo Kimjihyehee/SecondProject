@@ -1,28 +1,27 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // 추출한 데이터 -main.html에 미리 선언
-    // var dates = /*[[${dates}]]*/[];
-    // var statuses = /*[[${statuses}]]*/[];
 
-    console.log("dates : "+ dates);
-    console.log("statuses : "+ statuses);
+    const userStateCount = /* 위에서 구한 데이터 */;
+    const categories = Object.keys(userStateCount);
+    const seriesData = Object.keys(userStateCount[Object.keys(userStateCount)[0]]).map(user => {
+    return {
+    name: user,
+    data: categories.map(state => userStateCount[state][user] || 0)
+}
+});
 
-    // Highcharts 그래프 생성
     Highcharts.chart('chart-container', {
-        title: {
-            text: 'GitHub Issues Graph'
-        },
-        xAxis: {
-            categories: dates
-        },
-        yAxis: {
-            title: {
-                text: 'Status'
-            },
-            categories: statuses
-        },
-        series: [{
-            name: 'Issues',
-            data: statuses
-        }]
-    });
+    chart: {
+    type: 'column'
+},
+    title: {
+    text: 'User Issue Count by State'
+},
+    xAxis: {
+    categories: categories
+},
+    yAxis: {
+    title: {
+    text: 'Count'
+}
+},
+    series: seriesData
 });
