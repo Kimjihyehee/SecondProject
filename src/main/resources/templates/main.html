@@ -4,92 +4,289 @@
     <meta charset="UTF-8">
     <title>Issue Tracker</title>
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+    <link href="http://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet"></link>
+    <script src="http://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
-issues
 
 
-<!--<div id="chartContainer"></div>-->
-<!--<script>-->
-<!--    window.onload = function () {-->
-<!--        const chartData = JSON.parse(/*[[${chartData}]]*/ '[]');-->
-<!--        console.log(chartData);-->
-<!--        // Highcharts.chart('chartContainer', {-->
-<!--        //     chart: {-->
-<!--        //         type: 'column'-->
-<!--        //     },-->
-<!--        //     title: {-->
-<!--        //         text: 'Issue Count by User'-->
-<!--        //     },-->
-<!--        //     xAxis: {-->
-<!--        //         type: 'category',-->
-<!--        //         labels: {-->
-<!--        //             rotation: -45,-->
-<!--        //             style: {-->
-<!--        //                 fontSize: '13px',-->
-<!--        //                 fontFamily: 'Verdana, sans-serif'-->
-<!--        //             }-->
-<!--        //         }-->
-<!--        //     },-->
-<!--        //     yAxis: {-->
-<!--        //         min: 0,-->
-<!--        //         title: {-->
-<!--        //             text: 'Number of Issues'-->
-<!--        //         }-->
-<!--        //     },-->
-<!--        //     legend: {-->
-<!--        //         enabled: false-->
-<!--        //     },-->
-<!--        //     tooltip: {-->
-<!--        //         pointFormat: 'Number of Issues: <b>{point.y}</b>'-->
-<!--        //     },-->
-<!--        //     series: [{-->
-<!--        //         name: 'User',-->
-<!--        //         data: chartData-->
-<!--        //     }]-->
-<!--        // });-->
+    <div id="userCounts"></div>
+    <div id="assigneeCounts"></div>
+    <div id="dailyCounts"></div>
 
-<!--        fetch('/test')-->
-<!--            .then(response => response.json())-->
-<!--            .then(data => {-->
-<!--                console.log(data);-->
-<!--                Highcharts.chart('chartContainer', {-->
-<!--                    chart: {-->
-<!--                        type: 'column'-->
-<!--                    },-->
-<!--                    title: {-->
-<!--                        text: 'Issue Count by User'-->
-<!--                    },-->
-<!--                    xAxis: {-->
-<!--                        type: 'category',-->
-<!--                        labels: {-->
-<!--익                            style: {-->
-<!--                                fontSize: '13px',-->
-<!--                                fontFamily: 'Verdana, sans-serif'-->
-<!--                            }-->
-<!--                        }-->
-<!--                    },-->
-<!--                    yAxis: {-->
-<!--                        min: 0,-->
-<!--                        title: {-->
-<!--                            text: 'Number of Issues'-->
-<!--                        }-->
-<!--                    },-->
-<!--                    legend: {-->
-<!--                        enabled: false-->
-<!--                    },-->
-<!--                    tooltip: {-->
-<!--                        pointFormat: 'Number of Issues: <b>{point.y}</b>'-->
-<!--                    },-->
-<!--                    series: [{-->
-<!--                        name: 'User',-->
-<!--                        data: data-->
-<!--                    }]-->
-<!--                });-->
-<!--            })-->
-<!--            .catch(error => console.error(error));-->
-<!--    };-->
-<!--</script>-->
+
+    <div>
+        <input type="radio" id="all" name="state" value="all" checked>
+        <label for="all">All</label>
+        <input type="radio" id="open" name="state" value="open">
+        <label for="open">Open</label>
+        <input type="radio" id="closed" name="state" value="closed">
+        <label for="closed">Closed</label>
+    </div>
+
+    <section id="theme">
+        <div class="select">
+            <select class="option-list">
+                <!-- 옵션들을 동적으로 생성할 공간 -->
+            </select>
+        </div>
+    </section>
+
+    <div>
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate">
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate">
+    </div>
+
+    <button id="searchButton">Search</button>
+
+
+    <table id="issueTable" class="display">
+        <thead>
+        <tr>
+            <th>Number</th>
+            <th>Title</th>
+            <th>Username</th>
+            <th>Created At</th>
+            <th>Closed At</th>
+            <th>State</th>
+            <th>Labels</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center" id="pagination">
+            <li class="page-item" id="previousPage">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Previous</span>
+                </a>
+            </li>
+            <!-- 페이지 버튼들을 동적으로 생성할 공간 -->
+            <li class="page-item" id="nextPage">
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+
+<script>
+
+    var page = 1; // 페이지
+    var totalPages = 0; // 전체 페이지 수
+
+    // labelLoading() - 라벨 필터링 데이터 가져오는 함수
+    function labelLoading() {
+        $.ajax({
+            url: 'issue/label',
+            type: "GET",
+            success: function(labels) {
+                var selectBox = $('.option-list');
+                selectBox.empty();
+                selectBox.append($('<option>' + "선택" + '</option>'));
+                labels.forEach(function(label) {
+                    var option = $('<option>' + label + '</option>');
+                    selectBox.append(option);
+                });
+            }
+        });
+    }
+
+
+    // updateTable() - 테이블에 들어갈 데이터 가져오는 함수
+    function updateTable() {
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+        var state = $('input[name="state"]:checked').val();
+        var label = $('option:checked').val();
+
+
+        var data = {
+            page : page
+        };
+        if(state !== "all"){
+            data.state = state;
+        }
+        if(startDate != "" && endDate != ""){
+            data.startDate = startDate;
+            data.endDate = endDate;
+        }
+        if(label !== ""){
+            data.labels = undefined;
+        }
+
+        $.ajax({
+            url: 'issue/list',
+            data: data,
+            success: function (data) {
+                $('#issueTable').DataTable( {
+                    paging: false,
+                    destroy: true,
+                    data: data.list,
+                    columns: [
+                        { data: 'number' },
+                        { data: 'title' },
+                        { data: 'username' },
+                        { data: 'createdAt' },
+                        { data: 'closedAt' },
+                        { data: 'state' },
+                        { data: 'labels' }
+                    ]
+
+                });
+                // 페이지네이션 업데이트
+                updatePagination(data.total_count);
+            }
+        });
+    };
+    // updatePagination() - 페이지네이션 처리 함수
+    function updatePagination(totalCount) {
+        var totalPages = Math.ceil(totalCount / 10);
+        var pagination = $('#pagination');
+        pagination.empty();
+
+        var previousButton = $('<li class="page-item" id="previousPage"><a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>');
+        pagination.append(previousButton);
+
+        var startPage = Math.floor((page - 1) / 3) * 3 + 1;
+        var endPage = Math.min(startPage + 2, totalPages);
+        for (var i = startPage; i <= endPage; i++) {
+            var pageButton = $('<li class="page-item"><a class="page-link" href="#">' + i + '</a></li>');
+            pagination.append(pageButton);
+        }
+
+        var nextButton = $('<li class="page-item" id="nextPage"><a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>');
+        pagination.append(nextButton);
+
+        pagination.find('li.page-item').eq(page - startPage).addClass('active');
+
+        pagination.find('li.page-item').click(function() {
+            var clickedPage = $(this).index() + startPage;
+            if (clickedPage === page) {
+                return;
+            }
+            page = clickedPage;
+            updateTable();
+            updatePagination(totalCount);
+        });
+    }
+// ==========================================================
+    $(document).ready(function() {
+        // 차트 --------------------
+        $.ajax({
+            url: "/issue/chart",
+            type: "GET",
+            success: function(data) {
+                var userCounts = data.userCounts || {}; // null이나 undefined일 때는 빈 객체로 초기화
+                var assigneeCounts = data.assigneeCounts || {};
+                var dailyCounts = data.dailyCounts || {};
+
+                Highcharts.chart('userCounts', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'User Counts'
+                    },
+                    xAxis: {
+                        categories: Object.keys(userCounts)
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Counts'
+                        }
+                    },
+                    series: [{
+                        name: 'User Counts',
+                        data: Object.values(userCounts)
+                    }]
+                });
+
+                Highcharts.chart('assigneeCounts', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'Assignee Counts'
+                    },
+                    xAxis: {
+                        categories: Object.keys(assigneeCounts)
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Counts'
+                        }
+                    },
+                    series: [{
+                        name: 'Assignee Counts',
+                        data: Object.values(assigneeCounts)
+                    }]
+                });
+
+                Highcharts.chart('dailyCounts', {
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: 'Daily Counts'
+                    },
+                    xAxis: {
+                        categories: Object.keys(dailyCounts)
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Counts'
+                        }
+                    },
+                    series: [{
+                        name: 'Daily Counts',
+                        data: Object.values(dailyCounts)
+                    }]
+                });
+            }
+        }); // 차트 end--------------------
+
+        // 일단 실행
+        updateTable();
+
+        // 라벨 필터링 함수호출
+        labelLoading();
+
+
+        // 필터조건에 대한 특정조회버튼 클릭이벤트
+        $('#searchButton').click(function() {
+            page = 1; // Reset
+            updateTable();
+        });
+
+        // 날짜 필터링 데이터 변경 시 테이블 업데이트
+        $('#startDate, #endDate').change(function() {
+            page = 1; // Reset
+            updateTable();
+        });
+
+        // 상태 필터링 데이터 변경 시 테이블 업데이트
+        $('input[name="state"]').change(function() {
+            page = 1; // Reset
+            updateTable();
+        });
+
+
+    });
+
+</script>
 </body>
 </html>
